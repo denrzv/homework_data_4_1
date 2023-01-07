@@ -1,48 +1,23 @@
 package io.github.denrzv.homework_data_4_1.repository;
 
 import io.github.denrzv.homework_data_4_1.entity.Person;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.transaction.Transactional;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import io.github.denrzv.homework_data_4_1.entity.PersonId;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
-import java.util.stream.IntStream;
+import java.util.Optional;
 
 
-@Data
-@org.springframework.stereotype.Repository
-public class Repository {
-    @PersistenceContext
-    private EntityManager entityManager;
+public interface Repository extends CrudRepository<Person, PersonId> {
+    List<Person> findAllByCityOfLivingEqualsIgnoreCase(String city);
+    List<Person> findAllByAgeLessThanOrderByAge(int age);
+    Optional<List<Person>> findAllByNameEqualsIgnoreCaseAndSurnameEqualsIgnoreCase(String name, String surname);
 
-    public Repository() {
-        var names = Arrays.asList("Антон", "Иван", "Михаил");
-        var surnames = Arrays.asList("Антонов", "Иванов", "Михайлов");
-        var cities = Arrays.asList("Архангельск","Борисоглебск","Воронеж");
-        var random = new Random();
-        IntStream.range(0, 100)
-                .forEach(i -> {
-                    var person = Person.builder()
-                            .name(names.get(random.nextInt(names.size())))
-                            .surname(surnames.get(random.nextInt(surnames.size())))
-                            .age(random.nextInt(90))
-                            .phoneNumber(random.nextInt())
-                            .cityOfLiving(cities.get(random.nextInt(cities.size())))
-                            .build();
-                    entityManager.persist(person);
-                });
-    }
+    @Modifying
+    @Query("update Person p set p.phoneNumber = ?4 where p.name = ?1 and p.surname = ?2 and p.age = ?3")
+    Person setPersonPhoneNumberByNameAndSurnameAndAge(String name, String surname, Integer age, int phoneNumber);
 
-    @Transactional
-    public List<Person> getPersonsByCity(String city) {
-        Query query = entityManager.createQuery("select * from PERSONS where city_of_living = :city order by age");
-        query.setParameter("city", city);
-        return query.getResultList();
-    }
+    void deletePersonByNameAndSurnameAndAge(String name, String surname, int age);
 }
