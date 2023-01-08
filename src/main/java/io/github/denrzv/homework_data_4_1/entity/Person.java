@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @IdClass(PersonId.class)
 @NoArgsConstructor
-@Table(name = "PERSONS")
+@Table(name = "persons")
 public class Person {
     @Id
     @Column(nullable = false)
