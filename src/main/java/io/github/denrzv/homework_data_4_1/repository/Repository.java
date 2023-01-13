@@ -1,23 +1,32 @@
 package io.github.denrzv.homework_data_4_1.repository;
 
 import io.github.denrzv.homework_data_4_1.entity.Person;
-import io.github.denrzv.homework_data_4_1.entity.PersonId;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.util.List;
-import java.util.Optional;
 
 
-public interface Repository extends CrudRepository<Person, PersonId> {
-    List<Person> findAllByCityOfLivingEqualsIgnoreCase(String city);
-    List<Person> findAllByAgeLessThanOrderByAge(int age);
-    Optional<List<Person>> findAllByNameEqualsIgnoreCaseAndSurnameEqualsIgnoreCase(String name, String surname);
+@Data
+@org.springframework.stereotype.Repository
+@AllArgsConstructor
+public class Repository {
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    @Modifying
-    @Query("update Person p set p.phoneNumber = ?4 where p.name = ?1 and p.surname = ?2 and p.age = ?3")
-    Person setPersonPhoneNumberByNameAndSurnameAndAge(String name, String surname, Integer age, int phoneNumber);
+    public List<Person> getPersonsByCity(String city) {
+        Query query = entityManager.createQuery("select p from Person p where p.cityOfLiving = :city order by p.age");
+        query.setParameter("city", city);
+        return query.getResultList();
 
-    void deletePersonByNameAndSurnameAndAge(String name, String surname, int age);
+    }
+
+    @Transactional
+    public void persist(Person person) {
+        entityManager.persist(person);
+    }
 }
